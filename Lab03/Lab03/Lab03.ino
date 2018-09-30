@@ -91,9 +91,9 @@ void loop() {
   float tempDiff = temp - baselineTemp;
 
 // added a weight to the difference to make the percent more pernounced
-  float percentDif = (abs(tempDiff) * 2) / baselineTemp;
-  redValue = max(0, 255 * percentDif);
-  blueValue = max(0, 255 * ( 1 - percentDif));
+  float percentDif = (max(0, tempDiff) * 2) / baselineTemp;
+  redValue = min(255, 255 * percentDif);
+  blueValue = min(255, 255 * ( 1 - percentDif));
 
   analogWrite(redPin, redValue);
   analogWrite(bluePin, blueValue);
