@@ -11,6 +11,8 @@ int baselineValue;
 float baselineTemp;
 
 const int rollingAvgNum = 5;
+const int baselineNum = 10;
+const int baselineDelay = 250;
 int rollingAvg[rollingAvgNum];
 int readNum;
 
@@ -22,18 +24,19 @@ void setup() {
   pinMode(redPin, OUTPUT);
   pinMode(bluePin, OUTPUT);
   
-  createBaselineValue(10);
+  createBaselineValue(baselineNum);
   baselineTemp = convertValtoTemp(baselineValue);
+
+  for(int i = 0; i < rollingAvgNum; i ++){
+    addToAvg(baselineValue);
+  }
 }
 
 void createBaselineValue(int numReadings){
   int sum = 0;
-  int value;
   for(int i = 0; i < numReadings; i++){
-    value = getValue();
-    addToAvg(value);
-    sum += value;
-    delay(250);
+    sum += getValue();
+    delay(baselineDelay);
   }
   baselineValue = sum / numReadings;
 }
@@ -91,7 +94,7 @@ void loop() {
   float tempDiff = temp - baselineTemp;
 
 // added a weight to the difference to make the percent more pernounced
-  float percentDif = (max(0, tempDiff) * 5) / baselineTemp;
+  float percentDif = (max(0, tempDiff) * 2) / baselineTemp;
   redValue = min(255, 255 * percentDif);
   blueValue = min(255, 255 * ( 1 - percentDif));
 

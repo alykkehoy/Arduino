@@ -13,73 +13,6 @@ const int a = 440;
 const int b = 466;
 const int bf = 466;
 
-
-const int ledOnePin = 4;
-const int ledTwoPin = 5;
-const int ledThreePin = 6;
-const int ledFourPin = 7;
-
-const int leds[] = {
-  ledOnePin,
-  ledTwoPin,
-  ledThreePin,
-  ledFourPin
-};
-
-const int switchPin = 8;
-const int speakerPin = 9;
-
-unsigned long previousTime = 0;
-int switchState = 0;
-int prevSwitchState = 0;
-int currentLed = 0;
-long interval = 1000;
-
-Servo myServo;
-const int servoPin = 10;
-
-
-void setup() {
-  // put your setup code here, to run once:
-  pinMode(ledOnePin, OUTPUT);
-  pinMode(ledTwoPin, OUTPUT);
-  pinMode(ledThreePin, OUTPUT);
-  pinMode(ledFourPin, OUTPUT);
-
-  pinMode(switchPin, INPUT);
-  myServo.attach(servoPin);
-}
-
-void hourGlass(){
-  while(true){
-     unsigned long currentTime = millis();
-  
-    if (currentTime - previousTime > interval) {
-      previousTime = currentTime;
-      digitalWrite(leds[currentLed], HIGH);
-      currentLed++;
-  
-      if (currentLed == 4) {
-        return;
-      }
-    }
-  
-    switchState = digitalRead(switchPin);
-  
-    if (switchState != prevSwitchState) {
-      digitalWrite(ledOnePin, LOW);
-      digitalWrite(ledTwoPin, LOW);
-      digitalWrite(ledThreePin, LOW);
-      digitalWrite(ledFourPin, LOW);
-  
-      currentLed = 0;
-  
-      previousTime = currentTime;
-    }
-    prevSwitchState = switchState;  
-  }
-}
-
 const int notes[]{
   0, g, fs, e, e,
   fs, 0,
@@ -138,6 +71,73 @@ const double durations[]{
   0.5, 0.5, 1, 1, 0.5, 0.5,
   0.5, 0.5, 0.5, 1, 0.5, 0.5, 1  
 };
+
+const int ledOnePin = 4;
+const int ledTwoPin = 5;
+const int ledThreePin = 6;
+const int ledFourPin = 7;
+
+const int leds[] = {
+  ledOnePin,
+  ledTwoPin,
+  ledThreePin,
+  ledFourPin
+};
+
+const int switchPin = 8;
+const int speakerPin = 9;
+
+unsigned long previousTime = 0;
+int switchState = 0;
+int prevSwitchState = 0;
+int currentLed = 0;
+long interval = 1500;
+
+Servo myServo;
+const int servoPin = 10;
+
+
+void setup() {
+  // put your setup code here, to run once:
+  pinMode(ledOnePin, OUTPUT);
+  pinMode(ledTwoPin, OUTPUT);
+  pinMode(ledThreePin, OUTPUT);
+  pinMode(ledFourPin, OUTPUT);
+
+  pinMode(switchPin, INPUT);
+  myServo.attach(servoPin);
+}
+
+void hourGlass(){
+  while(true){
+     unsigned long currentTime = millis();
+  
+    if (currentTime - previousTime > interval) {
+      previousTime = currentTime;
+      if (currentLed == 4) {
+        return;
+      }
+      digitalWrite(leds[currentLed], HIGH);
+      currentLed++;
+    }
+  
+    switchState = digitalRead(switchPin);
+  
+    if (switchState != prevSwitchState) {
+      digitalWrite(ledOnePin, LOW);
+      digitalWrite(ledTwoPin, LOW);
+      digitalWrite(ledThreePin, LOW);
+      digitalWrite(ledFourPin, LOW);
+  
+      currentLed = 0;
+  
+      previousTime = currentTime;
+    }
+    prevSwitchState = switchState;  
+  }
+}
+
+
 void song(){
   for(int i = 0; i < sizeof(notes) / sizeof(int); i++){
     int noteDuration = (1600.0 * (durations[i] / 4.0));
@@ -164,12 +164,11 @@ void loop() {
   digitalWrite(ledThreePin, LOW);
   digitalWrite(ledFourPin, LOW);
   
-//  song();
+  song();
 
-
-  for(int i = 0; i < 3; i++){
-  myServo.write(90);
-  delay(1000);
-  myServo.write(179);
+  for(int i = 0; i < 2; i++){
+  myServo.write(9000);
+  delay(500);
+  myServo.write(-9000);
   }
 }
