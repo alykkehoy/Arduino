@@ -1,6 +1,8 @@
 // include the library code:
 #include <LiquidCrystal.h>
 
+static char baseChars[] = "0123456789ABCDEF";
+
 const int CONTRAST_PIN = 6;
 int contrastValue = 50;
 LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
@@ -36,63 +38,74 @@ void waitButton2(){
   return;  
 }
 
-//get a byte number
 int getNum(int num){
   lcd.clear();
-  lcd.print("Number " + String(num) + ":");
-  Serial.print("Number " + String(num) + ":\n");
-
-  int printNum = 0;
-  //for each of the 8 bit positions get 1 or 0
+  lcd.print("Num " + String(num) + ":");
+  lcd.setCursor(8,0);
   for(int i = 0; i < 8; i++){
-    b1State = digitalRead(BUTTON1_PIN);
-    b2State = digitalRead(BUTTON2_PIN);
-
-    bool state = true;
-    bool button1Up = true;
-
-    //wait for the submit button to come back up
-    while(b2State != LOW){
-      b2State = digitalRead(BUTTON2_PIN);
-      delay(100);
-    }
-
-    lcd.setCursor(i,1);
     lcd.print("0");
-
-    //while the submit button is not pressed check for the other button to swap the current bit
-    while(b2State == LOW){
-      b1State = digitalRead(BUTTON1_PIN);
-      b2State = digitalRead(BUTTON2_PIN);
-
-      if(b1State == LOW){
-        button1Up = true;
-      }
-
-      //if the other button is pressed flip the current bit
-      if(button1Up == true && b1State != LOW){
-        state = !state;
-        button1Up = false;
-        lcd.setCursor(i,1);
-        if(state){
-          lcd.print("0");
-          Serial.print(0);
-        }else{
-          lcd.print("1");
-          Serial.print(1);
-        }
-      }
-    }
-    //if the current bit state is set, set the bit in the printnum
-    if(!state){
-      bitSet(printNum, 8 - (i + 1));
-      Serial.println(printNum);
-    }
-    Serial.print("\nNext\n");
   }
-  Serial.println(printNum);
-  delay(2000);
-  return printNum;
+  lcd.setCursor(8, 1);
+  lcd.print("^");
+
+  delay(1000);
+  
+  int returnNum = 0;
+  int inputNums[] = {0,0,0,0,0,0,0,0};
+  int curLoc = 0;
+  bool b1Pressed = false;
+  bool b2Pressed = false;
+  bool b3Pressed = false;
+
+  while(curLoc < 8){
+    b1State = digitalRead(BUTTON1_PIN);
+    b2State = digitalRead(BUTTON2_PIN);  
+    b3State = digitalRead(BUTTON3_PIN);  
+
+    if(b1State != LOW && !b1Pressed){
+      if(curLoc > 0){
+        lcd.setCursor(curLoc + 8, 1);
+        lcd.print(" ");
+        b1Pressed = true;
+        curLoc--;
+        lcd.setCursor(curLoc + 8, 1);
+        lcd.print("^");
+      }
+    }
+    if(b1State == LOW){
+      b1Pressed = false;
+    }
+
+    if(b3State != LOW && !b3Pressed){
+      lcd.setCursor(curLoc + 8, 1);
+      lcd.print(" ");
+      b3Pressed = true;
+      curLoc++;
+      lcd.setCursor(curLoc + 8, 1);
+      lcd.print("^");
+    }
+    if(b3State == LOW){
+      b3Pressed = false;
+    }
+
+    if(b2State != LOW && !b2Pressed){
+      b2Pressed = true;
+      inputNums[curLoc]++;
+      lcd.setCursor(curLoc + 8, 0);
+      lcd.print(baseChars[inputNums[curLoc] % calcBase]);
+    }
+    if(b2State == LOW){
+      b2Pressed = false;
+    }
+  }
+
+  for(int i = 0; i < 8; i++){
+    Serial.println(inputNums[7 - i] % calcBase);
+    Serial.println(round(pow(calcBase, i)));
+    returnNum += ((inputNums[7 - i] % calcBase) * round(pow(calcBase, i)));
+  }
+  Serial.println(returnNum);
+  return returnNum;
 }
 
 //Screen for the calculator
@@ -103,13 +116,48 @@ void calcSum(){
 
   int sum = num1 + num2;
   lcd.clear();
-  lcd.print("Sum is:");
+  lcd.print("Sum:");
   lcd.setCursor(14,0);
   lcd.print(calcBase);
   lcd.setCursor(0,1);
   lcd.print(arbitraryBase(sum, calcBase));
 
+  displayResult(sum);
+}
 
+void calcDiff(){
+  //get the 2 nubmers to be added
+  int num1 = getNum(1);
+  int num2 = getNum(2);
+
+  int difference = num1 - num2;
+  lcd.clear();
+  lcd.print("Difference:");
+  lcd.setCursor(14,0);
+  lcd.print(calcBase);
+  lcd.setCursor(0,1);
+  lcd.print(arbitraryBase(difference, calcBase));
+
+  displayResult(difference);
+}
+
+void calcProd(){
+  //get the 2 nubmers to be added
+  int num1 = getNum(1);
+  int num2 = getNum(2);
+
+  int prod = num1 * num2;
+  lcd.clear();
+  lcd.print("Product:");
+  lcd.setCursor(14,0);
+  lcd.print(calcBase);
+  lcd.setCursor(0,1);
+  lcd.print(arbitraryBase(prod, calcBase));
+
+  displayResult(prod);
+}
+
+void displayResult(int result){
   delay(1000);
   int tempBase = calcBase;
   bool b1Pressed = false;
@@ -130,7 +178,7 @@ void calcSum(){
         lcd.setCursor(0,1);
         lcd.print("                ");
         lcd.setCursor(0,1);
-        lcd.print(arbitraryBase(sum, tempBase));
+        lcd.print(arbitraryBase(result, tempBase));
       }
     }
     if(b3State == LOW){
@@ -150,7 +198,7 @@ void calcSum(){
         lcd.setCursor(0,1);
         lcd.print("                ");
         lcd.setCursor(0,1);
-        lcd.print(arbitraryBase(sum, tempBase));
+        lcd.print(arbitraryBase(result, tempBase));
       }
     }
     if(b1State == LOW){
@@ -265,7 +313,6 @@ void setCalcBase(){
 }
 
 String arbitraryBase( int value, int base) {
-   static char baseChars[] = "0123456789ABCDEF";
    String result = "";
    do {
         result = String(baseChars[value % base]) + result;
@@ -368,7 +415,7 @@ void updateMenuScreen(int screen){
     case 0:
       lcd.print("   Calculator  >");
       lcd.setCursor(0,1);
-      lcd.print("     Menu      >");
+      lcd.print("      Menu     >");
       break;
     case 1:
       lcd.print("<   Addition   >");
@@ -406,10 +453,16 @@ void updateMenuScreen(int screen){
 void gotoMenuScreen(int screen){
   switch(screen){
     case 0:
-//      lcd.print("welcome test");
+//      getNum(1);
       break;
     case 1:
       calcSum();
+      break;
+    case 2:
+      calcDiff();
+      break;
+    case 3:
+      calcProd();
       break;
     case 4:
       changeBase();
