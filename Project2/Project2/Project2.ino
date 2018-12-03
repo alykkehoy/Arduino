@@ -36,17 +36,6 @@ void waitButton2(){
   return;  
 }
 
-//Display the intro splash screen
-void splashScreen(){
-  lcd.clear();
-  lcd.print("Welcome");
-  lcd.setCursor(0, 1);
-  lcd.print("User!");
-
-  waitButton2();
-  return;
-}
-
 //get a byte number
 int getNum(int num){
   lcd.clear();
@@ -115,6 +104,8 @@ void calcSum(){
   int sum = num1 + num2;
   lcd.clear();
   lcd.print("Sum is:");
+  lcd.setCursor(14,0);
+  lcd.print(calcBase);
   lcd.setCursor(0,1);
   lcd.print(arbitraryBase(sum, calcBase));
 
@@ -134,6 +125,8 @@ void calcSum(){
       if(tempBase < 16){
         b3Pressed = true;
         tempBase++;
+        lcd.setCursor(14,0);
+        lcd.print(tempBase);
         lcd.setCursor(0,1);
         lcd.print("                ");
         lcd.setCursor(0,1);
@@ -146,8 +139,14 @@ void calcSum(){
     
     if(b1State != LOW && !b1Pressed){
       if(tempBase > 2){
+        if(tempBase == 10){
+          lcd.setCursor(15,0);
+          lcd.print(" ");
+        }
         b1Pressed = true;
         tempBase--;
+        lcd.setCursor(14,0);
+        lcd.print(tempBase);
         lcd.setCursor(0,1);
         lcd.print("                ");
         lcd.setCursor(0,1);
@@ -425,9 +424,5 @@ void gotoMenuScreen(int screen){
 }
 
 void loop() {
-  splashScreen();
-//  calcSum();
-//  changeBase();
-//  contrastScreen();
   mainMenu();
 }
